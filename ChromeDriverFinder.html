@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChromeDriver Finder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+  <div class="w-full max-w-3xl">
+    <div class="bg-white shadow-2xl rounded-3xl p-8 space-y-6">
+
+      <h1 class="text-3xl font-bold text-center text-gray-800">ChromeDriver Finder</h1>
+      <p class="text-center text-gray-600">Quickly find and download the right ChromeDriver for your Chrome version and platform.</p>
+
+      <!-- Loader -->
+      <div id="loader" class="text-center my-4 hidden">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 mx-auto"></div>
+        <p class="text-gray-500 mt-2">Loading versions...</p>
+      </div>
+
+      <!-- Error Message -->
+      <div id="error" class="hidden bg-red-100 text-red-700 p-3 rounded text-sm"></div>
+
+      <div id="content" class="hidden space-y-6">
+
+        <!-- Auto Detect Version -->
+        <div id="autoDetectedMsg" class="hidden bg-blue-50 text-blue-700 p-3 rounded text-sm"></div>
+
+        <!-- Filters -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <div>
+            <label class="block font-medium mb-1">Chrome Version</label>
+            <select id="version" class="w-full p-2 border rounded-lg"></select>
+          </div>
+          <div>
+            <label class="block font-medium mb-1">Platform</label>
+            <select id="platform" class="w-full p-2 border rounded-lg"></select>
+          </div>
+          <div class="flex gap-2">
+            <a id="download" href="#" target="_blank" class="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg text-center hover:bg-green-700 transition">Download</a>
+            <button id="copyBtn" class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition">Copy Link</button>
+          </div>
+        </div>
+        <p id="copyMsg" class="hidden text-sm text-green-600"></p>
+
+        <!-- Donate -->
+        <div class="text-center">
+          <p class="mb-2 text-gray-600">If this tool helped you, consider supporting ❤️</p>
+          <a href="https://paypal.me/JawadKhan1992?locale.x=en_US&country.x=AE" target="_blank" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">Donate via PayPal</a>
+        </div>
+
+        <!-- About Me -->
+        <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 space-y-2">
+          <h2 class="text-xl font-semibold">About the Creator</h2>
+          <p class="text-gray-700 text-sm">
+            Hi, I’m <strong>Jawad Khan</strong> — a Senior QA Engineer with strong experience in automation, API testing, and building productivity tools.
+            I created this ChromeDriver Finder to help QA engineers easily download the right drivers without hassle.
+          </p>
+          <p class="text-gray-700 text-sm">If you have any idea or challenge, let's connect and discuss!</p>
+          <p class="text-gray-700 text-sm"><strong>Email:</strong> jawadkhan.it@gmail.com</p>
+          <p class="text-gray-700 text-sm"><strong>Location:</strong> Dubai, UAE</p>
+        </div>
+
+        <!-- LinkedIn -->
+        <div class="text-center">
+          <a href="https://www.linkedin.com/in/jawadkhan92/" target="_blank" class="text-blue-700 font-medium hover:underline">Connect with me on LinkedIn</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const versionDropdown = document.getElementById('version');
+    const platformDropdown = document.getElementById('platform');
+    const downloadBtn = document.getElementById('download');
+    const copyBtn = document.getElementById('copyBtn');
+    const copyMsg = document.getElementById('copyMsg');
+    const loader = document.getElementById('loader');
+    const content = document.getElementById('content');
+    const errorDiv = document.getElementById('error');
+    const autoDetectedMsg = document.getElementById('autoDetectedMsg');
+
+    async function fetchData() {
+      loader.classList.remove('hidden');
+      try {
+        const res = await fetch('https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json');
+        const data = await res.json();
+        loader.classList.add('hidden');
+        content.classList.remove('hidden');
+        initUI(data.versions);
+      } catch (err) {
+        loader.classList.add('hidden');
+        errorDiv.textContent = 'Failed to fetch ChromeDriver data.';
+        errorDiv.classList.remove('hidden');
+      }
+    }
+
+    function detectChromeVersion() {
+      const ua = navigator.userAgent.match(/Chrome\/(\d+\.\d+\.\d+\.\d+)/);
+      return ua ? ua[1] : null;
+    }
+
+    function initUI(versions) {
+      versions.forEach(v => {
+        const option = document.createElement('option');
+        option.value = v.version;
+        option.textContent = v.version;
+        versionDropdown.appendChild(option);
+      });
+
+      const detected = detectChromeVersion();
+      if (detected) {
+        autoDetectedMsg.textContent = 'Detected Chrome version: ' + detected;
+        autoDetectedMsg.classList.remove('hidden');
+        const closest = versions.find(v => v.version.startsWith(detected.split('.')[0]));
+        if (closest) versionDropdown.value = closest.version;
+      }
+
+      updatePlatforms(versions);
+      versionDropdown.addEventListener('change', () => updatePlatforms(versions));
+      platformDropdown.addEventListener('change', () => updateDownloadLink());
+      copyBtn.addEventListener('click', copyLink);
+    }
+
+    function updatePlatforms(versions) {
+      const selectedVersion = versions.find(v => v.version === versionDropdown.value);
+      platformDropdown.innerHTML = '';
+      selectedVersion.downloads.chromedriver.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.url;
+        opt.textContent = d.platform;
+        platformDropdown.appendChild(opt);
+      });
+      updateDownloadLink();
+    }
+
+    function updateDownloadLink() {
+      downloadBtn.href = platformDropdown.value;
+    }
+
+    function copyLink() {
+      navigator.clipboard.writeText(platformDropdown.value);
+      copyMsg.textContent = 'Copied to clipboard!';
+      copyMsg.classList.remove('hidden');
+      setTimeout(() => copyMsg.classList.add('hidden'), 2000);
+    }
+
+    fetchData();
+  </script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 A simple and free web tool to help **QA engineers** quickly find and download the correct **ChromeDriver** for their Chrome version and platform.
 
-🔗 **Live Demo**: [https://jawadk.github.io/ChromeDriverFinder/ChromeDriverFinder](https://jawadk.github.io/ChromeDriverFinder/ChromeDriverFinder)
+🔗 **Live Demo**: [https://jawadk.github.io/ChromeDriverFinder/ChromeDriverFinder](https://jawadk.github.io/ChromeDriverFinder/ChromeDriverFinder/ChromeDriverFinder)
 
 ---
 

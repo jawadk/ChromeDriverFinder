@@ -3,53 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>ChromeDriver Finder – Auto Detect & Download Correct ChromeDriver Version</title>
-
-  <!-- Primary SEO Meta Tags -->
-  <meta name="title" content="ChromeDriver Finder – Auto Detect & Download Correct ChromeDriver Version">
-  <meta name="description"
-        content="ChromeDriver Finder automatically detects your Chrome version and lets you quickly download the correct ChromeDriver for Windows, Mac, and Linux. Perfect for QA Engineers, Test Automation, and Selenium WebDriver users.">
-  <meta name="keywords"
-        content="ChromeDriver, ChromeDriver download, find ChromeDriver, Selenium WebDriver, QA tools, download correct ChromeDriver, Chrome version checker, automation testing tools, WebDriver, Chrome for testing">
-  <meta name="author" content="Jawad Khan">
-
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="ChromeDriver Finder – Download Correct ChromeDriver Easily">
-  <meta property="og:description" content="Automatically detect your Chrome browser version and download the correct ChromeDriver instantly. Built for QA Engineers and automation testers.">
-  <meta property="og:url" content="https://jawadk.github.io/ChromeDriverFinder/ChromeDriverFinder.html">
-  <meta property="og:image" content="https://jawadk.github.io/ChromeDriverFinder/banner.png">
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="ChromeDriver Finder – Auto Detect ChromeDriver">
-  <meta name="twitter:description" content="Find and download the correct ChromeDriver based on your Chrome version. Fast, accurate, and built for QA automation.">
-  <meta name="twitter:image" content="https://jawadk.github.io/ChromeDriverFinder/banner.png">
-
-  <!-- Canonical URL -->
-  <link rel="canonical" href="https://jawadk.github.io/ChromeDriverFinder/ChromeDriverFinder.html">
-
-  <!-- JSON-LD Structured Data (Google SEO) -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org/",
-    "@type": "SoftwareApplication",
-    "name": "ChromeDriver Finder",
-    "description": "A free tool that automatically detects your Chrome version and provides the correct ChromeDriver download link for Selenium automation.",
-    "applicationCategory": "DeveloperTool",
-    "operatingSystem": "Windows, macOS, Linux",
-    "creator": {
-      "@type": "Person",
-      "name": "Jawad Khan",
-      "jobTitle": "Senior QA Engineer",
-      "address": "Dubai, UAE"
-    },
-    "url": "https://jawadk.github.io/ChromeDriverFinder/ChromeDriverFinder.html"
-  }
-  </script>
-
-  <!-- Fonts + Tailwind -->
+  <title>ChromeDriver Finder</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>body { font-family: 'Inter', sans-serif; }</style>
@@ -90,6 +44,7 @@
             <button id="copyBtn" class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition">Copy Link</button>
           </div>
         </div>
+
         <p id="copyMsg" class="hidden text-sm text-green-600"></p>
 
         <!-- Donate -->
@@ -151,6 +106,8 @@
     }
 
     function initUI(versions) {
+
+      // Populate version dropdown first
       versions.forEach(v => {
         const option = document.createElement('option');
         option.value = v.version;
@@ -158,29 +115,42 @@
         versionDropdown.appendChild(option);
       });
 
+      // Detect Chrome version
       const detected = detectChromeVersion();
+
       if (detected) {
-        autoDetectedMsg.textContent = 'Detected Chrome version: ' + detected;
+        autoDetectedMsg.textContent = `Detected Chrome version: ${detected}`;
         autoDetectedMsg.classList.remove('hidden');
+
         const closest = versions.find(v => v.version.startsWith(detected.split('.')[0]));
         if (closest) versionDropdown.value = closest.version;
+      } else {
+        // Firefox, Safari, Edge → select latest version
+        versionDropdown.value = versions[versions.length - 1].version;
       }
 
+      // 💡 FIX: ensure value is set BEFORE updating platforms
       updatePlatforms(versions);
+
       versionDropdown.addEventListener('change', () => updatePlatforms(versions));
-      platformDropdown.addEventListener('change', () => updateDownloadLink());
+      platformDropdown.addEventListener('change', updateDownloadLink);
       copyBtn.addEventListener('click', copyLink);
     }
 
     function updatePlatforms(versions) {
       const selectedVersion = versions.find(v => v.version === versionDropdown.value);
+
       platformDropdown.innerHTML = '';
+
+      if (!selectedVersion) return;
+
       selectedVersion.downloads.chromedriver.forEach(d => {
         const opt = document.createElement('option');
         opt.value = d.url;
         opt.textContent = d.platform;
         platformDropdown.appendChild(opt);
       });
+
       updateDownloadLink();
     }
 
